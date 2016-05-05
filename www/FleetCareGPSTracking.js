@@ -29,7 +29,7 @@ var FleetCareGPSTracking = {
      * @param  {Function} callbackNoCoordenadas  [description]
      * @return {void}
      */
-    init: function(usuario_id, intervalo, callbackRutaGuardada, callbackPuntos, callbackRutaFinalizada, callbackNoCoordenadas) {
+    init: function (usuario_id, intervalo, callbackRutaGuardada, callbackPuntos, callbackRutaFinalizada, callbackNoCoordenadas) {
         /**
          * Seteamos variables necesarias para el plugin
          */
@@ -42,69 +42,70 @@ var FleetCareGPSTracking = {
         FleetCareGPSTracking.callbackPuntos = callbackPuntos;
         FleetCareGPSTracking.callbackRutaFinalizada = callbackRutaFinalizada;
         FleetCareGPSTracking.callbackNoCoordenadas = callbackNoCoordenadas;
-        FleetCareGPSTracking.estaActivo(function(status) {
+        FleetCareGPSTracking.estaActivo(function (status) {
             if (status) {
-                FleetCareGPSTracking.getNuevosPuntos(function(p) {
+                FleetCareGPSTracking.getNuevosPuntos(function (p) {
                     FleetCareGPSTracking.callbackPuntos(p);
-                }, function(e) {
+                }, function (e) {
                     //show error
                 });
-                FleetCareGPSTracking.getRutalActual(function(ruta) {
+                FleetCareGPSTracking.getRutalActual(function (ruta) {
                     FleetCareGPSTracking.callbackRutaGuardada(ruta);
-                }, function(e) {
+                }, function (e) {
                     //show error
                 });
             }
-        }, function(e) {});
+        }, function (e) {
+        });
     },
-    iniciarServicio: function(successCallback, errorCallback) {
-        var win = function(msg) {
+    iniciarServicio: function (successCallback, errorCallback) {
+        var win = function (msg) {
             successCallback(msg);
         };
-        var fail = function(e) {
+        var fail = function (e) {
             errorCallback(e);
-        }
+        };
         exec(win, fail, "FleetCareGPSTracking", "iniciarServicio", [{
             'IdUsuario': FleetCareGPSTracking.usuarioId,
             'IntervaloCaptura': FleetCareGPSTracking.intervaloCaptura * 1000
         }]);
     },
-    guardarNuevosPuntos: function(puntos) {
+    guardarNuevosPuntos: function (puntos) {
         FleetCareGPSTracking.puntosEncontrados = puntos;
         if (FleetCareGPSTracking.callbackPuntos != null)
             FleetCareGPSTracking.callbackPuntos(FleetCareGPSTracking.puntosEncontrados);
     },
-    getNuevosPuntos: function(successCallback, errorCallback) {
-        var win = function(p) {
+    getNuevosPuntos: function (successCallback, errorCallback) {
+        var win = function (p) {
             FleetCareGPSTracking.puntosEncontrados = p;
             successCallback(p);
         };
-        var fail = function(e) {
+        var fail = function (e) {
             errorCallback(e);
-        }
+        };
         exec(win, fail, "FleetCareGPSTracking", "getNuevosPuntos", []);
     },
-    getRutalActual: function(successCallback, errorCallback) {
-        var win = function(r) {
+    getRutalActual: function (successCallback, errorCallback) {
+        var win = function (r) {
             var ruta = r;
             FleetCareGPSTracking.rutaActual = new Ruta(ruta.IdRuta, ruta.IdUsuario, ruta.FechaHoraInicio, ruta.FechaHoraFin, ruta.Duracion, ruta.Distancia, ruta.Observaciones, ruta.DireccionInicio, ruta.DireccionFin, ruta.EsIOS);
             successCallback(FleetCareGPSTracking.rutaActual);
         };
-        var fail = function(e) {
+        var fail = function (e) {
             errorCallback(e);
-        }
+        };
         exec(win, fail, "FleetCareGPSTracking", "getRutaActual", []);
     },
-    estaActivo: function(successCallback, errorCallback) {
-        var win = function(activo) {
+    estaActivo: function (successCallback, errorCallback) {
+        var win = function (activo) {
             successCallback(activo);
         };
-        var fail = function(e) {
+        var fail = function (e) {
             errorCallback(e);
-        }
+        };
         exec(win, fail, "FleetCareGPSTracking", "activo", []);
     },
-    guardarRutaActual: function(ruta, final) {
+    guardarRutaActual: function (ruta, final) {
         ruta = JSON.parse(ruta);
         if (final) {
             FleetCareGPSTracking.rutaActual = new Ruta(ruta.IdRuta, ruta.IdUsuario, ruta.FechaHoraInicio, ruta.FechaHoraFin, ruta.Duracion, ruta.Distancia, ruta.Observaciones, ruta.DireccionInicio, ruta.DireccionFin, ruta.ListaPuntos);
@@ -114,19 +115,19 @@ var FleetCareGPSTracking = {
             FleetCareGPSTracking.callbackRutaGuardada(FleetCareGPSTracking.rutaActual);
         }
     },
-    avisoNoCoordenadas: function() {
+    avisoNoCoordenadas: function () {
         if (FleetCareGPSTracking.callbackNoCoordenadas != null)
             FleetCareGPSTracking.callbackNoCoordenadas();
     },
-    finalizarServicio: function(successCallback, errorCallback) {
-        var win = function(msg) {
+    finalizarServicio: function (successCallback, errorCallback) {
+        var win = function (msg) {
             successCallback(msg);
         };
-        var fail = function(e) {
+        var fail = function (e) {
             errorCallback(e);
-        }
+        };
         exec(win, fail, "FleetCareGPSTracking", "finalizarServicio", []);
-    },
+    }
 };
 
 module.exports = FleetCareGPSTracking;

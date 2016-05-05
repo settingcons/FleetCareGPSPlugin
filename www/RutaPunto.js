@@ -27,6 +27,6 @@ var RutaPunto = function(id, id_ruta_local, id_usuario, coord_x, coord_y, fecha_
     this.Accuracy = accuracy;
     this.FechaHoraCapturaRuta = fecha_hora_captura;
     this.Valido = valido;
-}
+};
 
 module.exports = RutaPunto;

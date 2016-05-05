@@ -34,6 +34,6 @@ var Ruta = function(id, id_usuario, fecha_hora_inicio, fecha_hora_fin, duracion,
             this.ListaPuntos.push(punto);
         }
     }
-}
+};
 
 module.exports = Ruta;

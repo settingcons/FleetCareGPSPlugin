@@ -1,68 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin id="com.settingconsultoria.gpstracking" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0">
-  <name>GPS Tracking Fleet Care</name>
-  <author>Ricardo Cámara</author>
-  <description>Servicio de GPS tracking para obtener y guardar las coordenadas recibidas</description>
-  <license>MIT</license>
+    <name>GPS Tracking Fleet Care</name>
+    <author>Ricardo Cámara</author>
+    <description>Servicio de GPS tracking para obtener y guardar las coordenadas recibidas</description>
+    <license>MIT</license>
 
-  <platform name="android">
-	
-	<framework src="com.android.support:support-v4:+" value="gradle" />
-	
-    <js-module src="www/Ruta.js" name="Ruta">
-        <clobbers target="Ruta" />
-    </js-module>
+    <platform name="android">
 
-    <js-module src="www/RutaPunto.js" name="RutaPunto">
-        <clobbers target="RutaPunto" />
-    </js-module>
+        <!-- <framework src="com.android.support:support-v4:+" value="gradle" /> -->
+        <lib-file src="libs/android/android-support-v4.jar" />
 
-    <js-module src="www/GPSError.js" name="GPSError">
-        <clobbers target="GPSError" />
-    </js-module>
+        <js-module src="www/Ruta.js" name="Ruta">
+            <clobbers target="Ruta"/>
+        </js-module>
 
-    <js-module src="www/FleetCareGPSTracking.js" name="FleetCareGPSTracking">
-        <clobbers target="window.FleetCareGPSTracking" />
-    </js-module>
+        <js-module src="www/RutaPunto.js" name="RutaPunto">
+            <clobbers target="RutaPunto"/>
+        </js-module>
 
-    <source-file src="src/android/GPSTracking.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/CapturarRutaService.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/Constants.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/DatabaseHelper.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/Helper.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/Ruta.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/RutaPunto.java" target-dir="src/com/settingconsultoria/gpstracking" />
-    <source-file src="src/android/DeviceName.java" target-dir="src/com/jaredrummler/android/device" />
-    <source-file src="src/android/beep.wav" target-dir="res/raw" />
+        <js-module src="www/GPSError.js" name="GPSError">
+            <clobbers target="GPSError"/>
+        </js-module>
 
-    <config-file target="res/values/strings.xml" parent="/resources">
-      <string name="recording_route">Capturando ruta..</string>
-      <string name="ruta_finalizada">Ruta finalizada</string>
-      <string name="espera_diez_minutos">Lleva más de 10 minutos sin capturar coordenadas.</string>
-    </config-file>
-    
-    <config-file target="res/xml/config.xml" parent="/*">
-      <feature name="FleetCareGPSTracking" >
-          <param name="android-package" value="com.settingconsultoria.gpstracking.GPSTracking"/>
-      </feature>
-    </config-file>
-    
-    <config-file target="AndroidManifest.xml" parent="/manifest">
-      <uses-permission android:name="android.permission.INTERNET" />
-      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-      <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-      <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-      <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
-      <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-      <uses-permission android:name="android.permission.WAKE_LOCK" />
-    </config-file>
-	
-  	<config-file target="AndroidManifest.xml" parent="/manifest/application">
-  		<service
-  				android:name="com.settingconsultoria.gpstracking.CapturarRutaService"
-  				android:process=":capturar_ruta_service"
-  				android:enabled="true" />
-  	</config-file>
-	
-  </platform>
+        <js-module src="www/FleetCareGPSTracking.js" name="FleetCareGPSTracking">
+            <clobbers target="window.FleetCareGPSTracking"/>
+        </js-module>
+
+        <source-file src="src/android/GPSTracking.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/CapturarRutaService.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/Constants.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/DatabaseHelper.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/Helper.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/Ruta.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/RutaPunto.java" target-dir="src/com/settingconsultoria/gpstracking"/>
+        <source-file src="src/android/DeviceName.java" target-dir="src/com/jaredrummler/android/device"/>
+        <source-file src="src/android/beep.wav" target-dir="res/raw"/>
+
+        <config-file target="res/values/strings.xml" parent="/resources">
+            <string name="recording_route">Capturando ruta..</string>
+            <string name="ruta_finalizada">Ruta finalizada</string>
+            <string name="espera_diez_minutos">Lleva más de 10 minutos sin capturar coordenadas.</string>
+        </config-file>
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="FleetCareGPSTracking">
+                <param name="android-package" value="com.settingconsultoria.gpstracking.GPSTracking"/>
+            </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+            <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+            <uses-permission android:name="android.permission.WAKE_LOCK"/>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <service
+                    android:name="com.settingconsultoria.gpstracking.CapturarRutaService"
+                    android:process=":capturar_ruta_service"
+                    android:enabled="true"/>
+        </config-file>
+
+    </platform>
 </plugin>
