@@ -21,8 +21,6 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.jaredrummler.android.device.DeviceName;
-import com.settingconsultoria.FleetCare.MainActivity;
-import com.settingconsultoria.FleetCare.R;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -64,7 +62,7 @@ public class CapturarRutaService extends Service {
 
             if (!checkCeros(location)) {
                 if (!checkCoords(location)) {
-                    if(!checkDiffIntervalo(location)) {
+                    if (!checkDiffIntervalo(location)) {
                         if (location.getAccuracy() <= 50) {
                             puntosEncontrados++;
                             intent = new Intent(BROADCAST_ACTION);
@@ -293,7 +291,9 @@ public class CapturarRutaService extends Service {
 
         //si esta vencida lanzar aviso
         if (duration >= MAX_DURATION) {
-            MediaPlayer mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.beep);
+            MediaPlayer mPlayer = null;
+            int rawInt = getApplicationContext().getResources().getIdentifier("beep.wav", "raw", getApplicationContext().getPackageName());
+            mPlayer = MediaPlayer.create(getApplicationContext(), rawInt);
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.start();
             int idDrawable = getApplicationContext().getResources().getIdentifier("icon", "drawable", getApplicationContext().getPackageName());
@@ -303,7 +303,7 @@ public class CapturarRutaService extends Service {
                     .setSmallIcon(idDrawable)
                     .setContentTitle(getApplicationContext().getString(idAppName))
                     .setContentText(getApplicationContext().getString(idString))
-                    .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), 0))
+                    .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), getApplicationContext().getClass()), 0))
                     .build();
             note.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
             NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
