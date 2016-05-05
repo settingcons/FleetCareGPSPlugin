@@ -60,9 +60,9 @@ public class CapturarRutaService extends Service {
         public void onLocationChanged(Location location) {
             Log.e(TAG, "onLocationChanged: " + location);
 
-            if (!checkCeros(location)) {
-                if (!checkCoords(location)) {
-                    if (!checkDiffIntervalo(location)) {
+            if (checkCeros(location)) {
+                if (checkCoords(location)) {
+                    if (checkDiffIntervalo(location)) {
                         if (location.getAccuracy() <= 50) {
                             puntosEncontrados++;
                             intent = new Intent(BROADCAST_ACTION);
@@ -292,7 +292,7 @@ public class CapturarRutaService extends Service {
         //si esta vencida lanzar aviso
         if (duration >= MAX_DURATION) {
             MediaPlayer mPlayer = null;
-            int rawInt = getApplicationContext().getResources().getIdentifier("beep.wav", "raw", getApplicationContext().getPackageName());
+            int rawInt = getApplicationContext().getResources().getIdentifier("beep", "raw", getApplicationContext().getPackageName());
             mPlayer = MediaPlayer.create(getApplicationContext(), rawInt);
             mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mPlayer.start();
@@ -322,11 +322,17 @@ public class CapturarRutaService extends Service {
     }
 
     private Boolean checkCeros(Location location) {
-        return !(location.getSpeed() == 0 && location.getAltitude() == 0 && location.getAccuracy() == 0);
+        if (location.getSpeed() == 0 && location.getAltitude() == 0 && location.getAccuracy() == 0)  {
+            return false;
+        }
+        return true;
     }
 
     private Boolean checkCoords(Location location) {
-        return !(location.getLatitude() == mLastLocation.getLatitude() && location.getLongitude() == mLastLocation.getLongitude());
+        if (location.getLatitude() == mLastLocation.getLatitude() && location.getLongitude() == mLastLocation.getLongitude()) {
+            return false;
+        }
+        return true;
     }
 
     private Boolean checkDiffIntervalo(Location location) {
