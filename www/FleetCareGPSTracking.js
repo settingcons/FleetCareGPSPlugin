@@ -75,7 +75,8 @@ var FleetCareGPSTracking = {
     },
     guardarNuevosPuntos: function (puntos) {
         FleetCareGPSTracking.puntosEncontrados = puntos;
-        if (FleetCareGPSTracking.callbackPuntos != null) FleetCareGPSTracking.callbackPuntos(FleetCareGPSTracking.puntosEncontrados);
+        if (FleetCareGPSTracking.callbackPuntos != null)
+            FleetCareGPSTracking.callbackPuntos(FleetCareGPSTracking.puntosEncontrados);
     },
     getNuevosPuntos: function (successCallback, errorCallback) {
         var win = function (p) {
@@ -118,7 +119,8 @@ var FleetCareGPSTracking = {
         }
     },
     avisoNoCoordenadas: function () {
-        if (FleetCareGPSTracking.callbackNoCoordenadas != null) FleetCareGPSTracking.callbackNoCoordenadas();
+        if (FleetCareGPSTracking.callbackNoCoordenadas != null)
+            FleetCareGPSTracking.callbackNoCoordenadas();
     },
     finalizarServicio: function (successCallback, errorCallback) {
         var win = function (msg) {

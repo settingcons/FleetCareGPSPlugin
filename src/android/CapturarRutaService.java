@@ -61,27 +61,29 @@ public class CapturarRutaService extends Service {
         public void onLocationChanged(Location location) {
             Log.e(TAG, "onLocationChanged: " + location);
 
-            if (checkCeros(location)) {
-                if (checkCoords(location)) {
-                    if (checkDiffIntervalo(location)) {
-                        if (location.getAccuracy() <= 50) {
-                            puntosEncontrados++;
-                            intent = new Intent(BROADCAST_ACTION);
-                            intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
-                            sendBroadcast(intent);
-                            Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
-                            String pattern = "dd/MM/yyyy HH:mm:ss";
-                            String dateInString = new SimpleDateFormat(pattern).format(new Date(location.getTime()));
-                            String fechaCaptura = new SimpleDateFormat(pattern).format(new Date());
-                            float distance = Helper.calcularDistanciaEntreDosPuntos(location, mLastLocation);
+            String pattern = "dd/MM/yyyy HH:mm:ss";
+            String dateInString = new SimpleDateFormat(pattern).format(new Date(location.getTime()));
+            String fechaCaptura = new SimpleDateFormat(pattern).format(new Date());
+            float distance = Helper.calcularDistanciaEntreDosPuntos(location, mLastLocation);
 
-                            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, 0, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : null) : null), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
-                            long id = databaseHelper.insertRutaPunto(rutaPunto);
-                            mLastLocation.set(location);
+            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, 0, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : null) : null), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
+            if (checkCeros(location, rutaPunto)) {
+                if (checkCoords(location, rutaPunto)) {
+                    if (checkDiffIntervalo(location, rutaPunto)) {
+                        if (location.getAccuracy() > 50) {
+                            rutaPunto.setValido(-3);
                         }
                     }
                 }
             }
+
+            puntosEncontrados++;
+            intent = new Intent(BROADCAST_ACTION);
+            intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
+            sendBroadcast(intent);
+            Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
+            mLastLocation.set(location);
+            long id = databaseHelper.insertRutaPunto(rutaPunto);
         }
 
         @Override
@@ -327,22 +329,24 @@ public class CapturarRutaService extends Service {
         }, 60 * 10 * 1000);
     }
 
-    private Boolean checkCeros(Location location) {
+    private Boolean checkCeros(Location location, RutaPunto rutaPunto) {
         Float heading = location.hasBearing() ? location.getBearing() : null;
         if (location.getSpeed() == 0 && location.getAltitude() == 0 && (heading == null || heading == 0) && location.getAccuracy() > 10) {
+            rutaPunto.setValido(-1);
             return false;
         }
         return true;
     }
 
-    private Boolean checkCoords(Location location) {
+    private Boolean checkCoords(Location location, RutaPunto rutaPunto) {
         if (location.getLatitude() == mLastLocation.getLatitude() && location.getLongitude() == mLastLocation.getLongitude()) {
+            rutaPunto.setValido(-4);
             return false;
         }
         return true;
     }
 
-    private Boolean checkDiffIntervalo(Location location) {
+    private Boolean checkDiffIntervalo(Location location, RutaPunto rutaPunto) {
         Date mLocationTime = new Date(mLastLocation.getTime());
         Date actualLocationTime = new Date(location.getTime());
         long diff = actualLocationTime.getTime() - mLocationTime.getTime();

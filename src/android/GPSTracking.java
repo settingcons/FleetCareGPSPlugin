@@ -149,9 +149,8 @@ public class GPSTracking extends CordovaPlugin {
             PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
             callbackContext.sendPluginResult(pluginResult);
         }
-        mContext.startService(serviceIntent);
-
         mActivo = true;
+        mContext.startService(serviceIntent);
 
         JSONObject o = new JSONObject();
         try {
