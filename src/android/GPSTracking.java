@@ -143,6 +143,7 @@ public class GPSTracking extends CordovaPlugin {
         try {
             serviceIntent.putExtra("IdUsuario", opts.getString("IdUsuario"));
             serviceIntent.putExtra("IntervaloCaptura", opts.getString("IntervaloCaptura"));
+            serviceIntent.putExtra("MensajeDireccionNoEncontrada", opts.getString("MensajeDireccionNoEncontrada"));
         } catch (JSONException e) {
             e.printStackTrace();
             PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, e.getMessage());

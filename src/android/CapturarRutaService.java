@@ -43,6 +43,7 @@ public class CapturarRutaService extends Service {
     private int puntosEncontrados = 0;
     private int mIdUsuario = 0;
     private int mIntervaloCaptura = Constants.INVTERRVAL_FETCH_LOCATION;
+    private String mDireccionNoEncontrada = "Dirección no encontrada";
 
     public static final String BROADCAST_ACTION = "settingconsultoria.com.fleetcarenativo.enviarpuntosencontrados";
     Intent intent;
@@ -109,6 +110,7 @@ public class CapturarRutaService extends Service {
         Log.e(TAG, "onStartCommand");
         mIdUsuario = Integer.valueOf((String) intent.getExtras().get("IdUsuario"));
         mIntervaloCaptura = Integer.valueOf((String) intent.getExtras().get("IntervaloCaptura"));
+        mDireccionNoEncontrada = (String) intent.getExtras().get("MensajeDireccionNoEncontrada");
 
         Helper.setRunningService(getApplicationContext(), true);
         return START_STICKY;
@@ -199,8 +201,8 @@ public class CapturarRutaService extends Service {
              * Coger los nombres de las calles de inicio y fin
              **/
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-            String direcInicio = "";
-            String direcFin = "";
+            String direcInicio = mDireccionNoEncontrada;
+            String direcFin = mDireccionNoEncontrada;
             try {
                 List<Address> addressesDirecInicio = geocoder.getFromLocation(loc1.getLatitude(), loc1.getLongitude(), 1);
                 if (addressesDirecInicio.size() > 0) {
@@ -288,6 +290,9 @@ public class CapturarRutaService extends Service {
         Date now = new Date();
         long MAX_DURATION = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);//10 minutos
         long duration = now.getTime() - lastLocationTime.getTime();
+        Log.e(TAG, "Entro al resolver");
+        Log.e(TAG, "duration: " + duration);
+        Log.e(TAG, "MAX_DURATION: " + MAX_DURATION);
 
         //si esta vencida lanzar aviso
         if (duration >= MAX_DURATION) {
@@ -322,7 +327,8 @@ public class CapturarRutaService extends Service {
     }
 
     private Boolean checkCeros(Location location) {
-        if (location.getSpeed() == 0 && location.getAltitude() == 0 && location.getAccuracy() == 0)  {
+        Float heading = location.hasBearing() ? location.getBearing() : null;
+        if (location.getSpeed() == 0 && location.getAltitude() == 0 && (heading == null || heading == 0) && location.getAccuracy() > 10) {
             return false;
         }
         return true;
