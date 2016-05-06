@@ -237,8 +237,9 @@ public class CapturarRutaService extends Service {
         rutaActual.setDistancia(Float.toString(distancia / 1000));
         rutaActual.setDuracion(duracion);
         String deviceAndAndroidVersion = DeviceName.getDeviceName();
-        deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
-        rutaActual.setObservaciones(deviceAndAndroidVersion);
+        /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
+        rutaActual.setObservaciones(deviceAndAndroidVersion);*/
+        rutaActual.setObservaciones("");
 
         /*
             Updatear Ruta

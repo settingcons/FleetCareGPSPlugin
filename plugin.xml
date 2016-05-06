@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<plugin id="com.settingconsultoria.gpstracking" version="1.0.4" xmlns="http://apache.org/cordova/ns/plugins/1.0">
+<plugin id="com.settingconsultoria.gpstracking" version="1.0.5" xmlns="http://apache.org/cordova/ns/plugins/1.0">
     <name>GPS Tracking Fleet Care</name>
     <author>Ricardo Cámara</author>
     <description>Servicio de GPS tracking para obtener y guardar las coordenadas recibidas</description>
