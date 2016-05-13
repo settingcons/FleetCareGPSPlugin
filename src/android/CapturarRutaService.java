@@ -65,8 +65,7 @@ public class CapturarRutaService extends Service {
             String dateInString = new SimpleDateFormat(pattern).format(new Date(location.getTime()));
             String fechaCaptura = new SimpleDateFormat(pattern).format(new Date());
             float distance = Helper.calcularDistanciaEntreDosPuntos(location, mLastLocation);
-            Log.e(TAG, "idRutaActual: " + idRutaActual);
-            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, 0, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : "0") : "0"), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
+            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, mIdUsuario, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : "0") : "0"), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
             if (checkCeros(location, rutaPunto)) {
                 if (checkCoords(location, rutaPunto)) {
                     if (checkDiffIntervalo(location, rutaPunto)) {
@@ -299,7 +298,7 @@ public class CapturarRutaService extends Service {
         long hours = TimeUnit.MILLISECONDS.toHours(duration);
         long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % 60;
         long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % 60;
-        return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
 
     private void resolverDesdeTimer() {

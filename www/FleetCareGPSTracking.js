@@ -95,7 +95,8 @@ var FleetCareGPSTracking = {
             successCallback(FleetCareGPSTracking.rutaActual);
         };
         var fail = function (e) {
-            errorCallback(e);
+            var err = new GPSError(e.code, e.message);
+            errorCallback(err);
         };
         exec(win, fail, "FleetCareGPSTracking", "getRutaActual", []);
     },
