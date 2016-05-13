@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,8 +20,6 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-
-import com.jaredrummler.android.device.DeviceName;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -49,6 +48,7 @@ public class CapturarRutaService extends Service {
     Intent intent;
     private Timer mTimer;
     private Location mLastLocation;
+    private float mDistancia = 0f;
 
     private class LocationListener implements android.location.LocationListener {
 
@@ -65,8 +65,8 @@ public class CapturarRutaService extends Service {
             String dateInString = new SimpleDateFormat(pattern).format(new Date(location.getTime()));
             String fechaCaptura = new SimpleDateFormat(pattern).format(new Date());
             float distance = Helper.calcularDistanciaEntreDosPuntos(location, mLastLocation);
-
-            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, 0, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : null) : null), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
+            Log.e(TAG, "idRutaActual: " + idRutaActual);
+            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, 0, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : "0") : "0"), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
             if (checkCeros(location, rutaPunto)) {
                 if (checkCoords(location, rutaPunto)) {
                     if (checkDiffIntervalo(location, rutaPunto)) {
@@ -82,6 +82,9 @@ public class CapturarRutaService extends Service {
             intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
             sendBroadcast(intent);
             Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
+            if (puntosEncontrados > 1) {
+                mDistancia += location.distanceTo(mLastLocation);
+            }
             mLastLocation.set(location);
             long id = databaseHelper.insertRutaPunto(rutaPunto);
         }
@@ -115,6 +118,21 @@ public class CapturarRutaService extends Service {
         mDireccionNoEncontrada = (String) intent.getExtras().get("MensajeDireccionNoEncontrada");
 
         Helper.setRunningService(getApplicationContext(), true);
+
+         /* int r = Helper.getRutaActual(getApplicationContext());
+        if (r != 0)
+            idRutaActual = r;
+        else {*/
+        String pattern = "dd/MM/yyyy HH:mm:ss";
+        String dateInString = new SimpleDateFormat(pattern).format(new Date());
+        Ruta ruta = new Ruta(0, this.mIdUsuario, dateInString, "", "00:00:00", "", "", mDireccionNoEncontrada, mDireccionNoEncontrada);
+        long idNewRuta = databaseHelper.insertRuta(ruta);
+        idRutaActual = (int) idNewRuta;
+        Helper.setRutaActual(getApplicationContext(), idRutaActual);
+        /*}*/
+        intent.putExtra("idRutaActual", Integer.toString(idRutaActual));
+        sendBroadcast(intent);
+
         return START_STICKY;
     }
 
@@ -124,16 +142,26 @@ public class CapturarRutaService extends Service {
         int idDrawable = getApplicationContext().getResources().getIdentifier("icon", "drawable", getApplicationContext().getPackageName());
         int idAppName = getApplicationContext().getResources().getIdentifier("app_name", "string", getApplicationContext().getPackageName());
         int idString = getApplicationContext().getResources().getIdentifier("recording_route", "string", getApplicationContext().getPackageName());
+
+        Intent i = new Intent();
+        String mPackage = getApplicationContext().getPackageName();
+        String mClass = ".MainActivity";
+        i.setComponent(new ComponentName(mPackage, mPackage + mClass));
+
+        PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, i, 0);
+
         Notification note = new NotificationCompat.Builder(this)
                 .setSmallIcon(idDrawable)
                 .setContentTitle(getApplicationContext().getString(idAppName))
                 .setContentText(getApplicationContext().getString(idString))
+                .setContentIntent(contentIntent)
                 .build();
         startForeground(Constants.NOTIFICATION_ID, note);
         initializeLocationManager();
         intent = new Intent(BROADCAST_ACTION);
         databaseHelper = DatabaseHelper.getInstance(getApplicationContext());
-        puntosEncontrados = Helper.getPuntosEncontrados(getApplicationContext());
+        /*puntosEncontrados = Helper.getPuntosEncontrados(getApplicationContext());*/
+        puntosEncontrados = 0;
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
             @Override
@@ -141,20 +169,6 @@ public class CapturarRutaService extends Service {
                 resolverDesdeTimer();
             }
         }, 60 * 10 * 1000);
-
-        int r = Helper.getRutaActual(getApplicationContext());
-        if (r != 0)
-            idRutaActual = r;
-        else {
-            String pattern = "dd/MM/yyyy HH:mm:ss";
-            String dateInString = new SimpleDateFormat(pattern).format(new Date());
-            Ruta ruta = new Ruta(0, mIdUsuario, dateInString, "", "", "", "", "", "");
-            long idNewRuta = databaseHelper.insertRuta(ruta);
-            idRutaActual = (int) idNewRuta;
-            Helper.setRutaActual(getApplicationContext(), idRutaActual);
-        }
-        intent.putExtra("idRutaActual", Integer.toString(idRutaActual));
-        sendBroadcast(intent);
 
         try {
             mLocationManager.requestLocationUpdates(
@@ -188,7 +202,7 @@ public class CapturarRutaService extends Service {
         */
         Ruta rutaActual = databaseHelper.getRutaActual(idRutaActual);
         List<RutaPunto> rutaPuntoList = databaseHelper.getRutaPuntos(idRutaActual);
-        float distancia = 0;
+        float distancia = 0f;
         String duracion = "0";
         if (rutaPuntoList.size() > 0) {
             Location loc1 = new Location("");
@@ -197,7 +211,8 @@ public class CapturarRutaService extends Service {
             Location loc2 = new Location("");
             loc2.setLatitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_x());
             loc2.setLongitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_y());
-            distancia = Helper.calcularDistanciaEntreDosPuntos(loc1, loc2);
+            /*distancia = Helper.calcularDistanciaEntreDosPuntos(loc1, loc2);*/
+            distancia = mDistancia;
 
             /**
              * Coger los nombres de las calles de inicio y fin
@@ -236,9 +251,9 @@ public class CapturarRutaService extends Service {
             rutaActual.setFechaHoraFin(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
         }
 
-        rutaActual.setDistancia(Float.toString(distancia / 1000));
+        rutaActual.setDistancia(String.valueOf(distancia / 1000));
         rutaActual.setDuracion(duracion);
-        String deviceAndAndroidVersion = DeviceName.getDeviceName();
+        /*String deviceAndAndroidVersion = DeviceName.getDeviceName();*/
         /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
         rutaActual.setObservaciones(deviceAndAndroidVersion);*/
         rutaActual.setObservaciones("");
@@ -284,7 +299,7 @@ public class CapturarRutaService extends Service {
         long hours = TimeUnit.MILLISECONDS.toHours(duration);
         long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) % 60;
         long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) % 60;
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds);
     }
 
     private void resolverDesdeTimer() {
@@ -293,9 +308,6 @@ public class CapturarRutaService extends Service {
         Date now = new Date();
         long MAX_DURATION = TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES);//10 minutos
         long duration = now.getTime() - lastLocationTime.getTime();
-        Log.e(TAG, "Entro al resolver");
-        Log.e(TAG, "duration: " + duration);
-        Log.e(TAG, "MAX_DURATION: " + MAX_DURATION);
 
         //si esta vencida lanzar aviso
         if (duration >= MAX_DURATION) {

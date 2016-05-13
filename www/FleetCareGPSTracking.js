@@ -130,6 +130,9 @@ var FleetCareGPSTracking = {
             errorCallback(e);
         };
         exec(win, fail, "FleetCareGPSTracking", "finalizarServicio", []);
+    },
+    rutaNoEncontrada: function(msg) {
+        console.info(msg.message);
     }
 };
 module.exports = FleetCareGPSTracking;

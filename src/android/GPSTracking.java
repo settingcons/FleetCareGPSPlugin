@@ -59,7 +59,7 @@ public class GPSTracking extends CordovaPlugin {
                 iniciarServicio(callbackContext, arg_object);
             } catch (JSONException e) {
                 e.printStackTrace();
-                PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, "{'message': 'Servicio no inicializado', 'code': 2}");
                 callbackContext.sendPluginResult(pluginResult);
             }
 
@@ -102,7 +102,14 @@ public class GPSTracking extends CordovaPlugin {
          * Esto es que simplemente ha encontrado un punto nuevo
          */
         if (intent.getStringExtra("puntosEncontrados") != null) {
-            int puntosEncontrados = Integer.valueOf(intent.getStringExtra("puntosEncontrados"));
+            int puntosEncontrados;
+            try {
+                puntosEncontrados = Integer.valueOf(intent.getStringExtra("puntosEncontrados"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                puntosEncontrados = 0;
+            }
+
             webView.loadUrl("javascript:FleetCareGPSTracking.guardarNuevosPuntos(" + puntosEncontrados + ");");
         }
 
@@ -120,17 +127,30 @@ public class GPSTracking extends CordovaPlugin {
             String rutaActualId = intent.getStringExtra("idRutaActual");
 
             String rutaS = "";
-            if (!mActivo) {
-                Ruta ruta = mDHelper.getRutaActual(Integer.valueOf(rutaActualId));
-                List<RutaPunto> rutaPuntoList = mDHelper.getRutaPuntos(ruta.getId());
-                JSONArray rutaPuntoJsonList = Helper.getRutaPuntoArrayJson(rutaPuntoList);
-                rutaS = ruta.toJson(rutaPuntoJsonList).toString();
-                if (rutaPuntoList.size() == 0) {
-                    mDHelper.deleteRuta(ruta.getId());
+            String msg;
+            if (!mActivo) {//final ruta
+                try {
+                    Ruta ruta = mDHelper.getRutaActual(Integer.valueOf(rutaActualId));
+                    List<RutaPunto> rutaPuntoList = mDHelper.getRutaPuntos(ruta.getId());
+                    JSONArray rutaPuntoJsonList = Helper.getRutaPuntoArrayJson(rutaPuntoList);
+                    rutaS = ruta.toJson(rutaPuntoJsonList).toString();
+                    if (rutaPuntoList.size() == 0) {
+                        mDHelper.deleteRuta(ruta.getId());
+                    }
+                } catch (Exception e) {
+                    msg = "{'message':'Ruta no encontrada', 'code': 3}";
+                    webView.loadUrl("javascript:FleetCareGPSTracking.rutaNoEncontrada(" + msg + ")");
                 }
-            } else {
-                Ruta ruta = mDHelper.getRutaActual(Integer.valueOf(rutaActualId));
-                rutaS = ruta.toJson().toString();
+
+            } else {//inicio
+                try {
+                    Ruta ruta = mDHelper.getRutaActual(Integer.valueOf(rutaActualId));
+                    rutaS = ruta.toJson().toString();
+                } catch (Exception e) {
+                    msg = "{'message':'Ruta no encontrada', 'code': 3}";
+                    webView.loadUrl("javascript:FleetCareGPSTracking.rutaNoEncontrada(" + msg + ")");
+                }
+
             }
 
             webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual('" + rutaS + "', " + ((mActivo) ? "false" : "true") + ");");
@@ -139,26 +159,24 @@ public class GPSTracking extends CordovaPlugin {
 
 
     private void iniciarServicio(CallbackContext callbackContext, JSONObject opts) {
-        Intent serviceIntent = new Intent(mContext, CapturarRutaService.class);
+        PluginResult pluginResult;
         try {
+            Intent serviceIntent = new Intent(mContext, CapturarRutaService.class);
             serviceIntent.putExtra("IdUsuario", opts.getString("IdUsuario"));
             serviceIntent.putExtra("IntervaloCaptura", opts.getString("IntervaloCaptura"));
             serviceIntent.putExtra("MensajeDireccionNoEncontrada", opts.getString("MensajeDireccionNoEncontrada"));
-        } catch (JSONException e) {
-            e.printStackTrace();
-            PluginResult pluginResult = new PluginResult(PluginResult.Status.ERROR, e.getMessage());
-            callbackContext.sendPluginResult(pluginResult);
-        }
-        mActivo = true;
-        mContext.startService(serviceIntent);
 
-        JSONObject o = new JSONObject();
-        try {
+            mActivo = true;
+            mContext.startService(serviceIntent);
+
+            JSONObject o = new JSONObject();
             o.put("msg", "Servicio iniciado");
+
+            pluginResult = new PluginResult(PluginResult.Status.OK, o);
         } catch (JSONException e) {
             e.printStackTrace();
+            pluginResult = new PluginResult(PluginResult.Status.ERROR, "{'message': 'Servicio no inicializado', 'code': 2}");
         }
-        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, o);
 
         callbackContext.sendPluginResult(pluginResult);
     }
@@ -181,12 +199,26 @@ public class GPSTracking extends CordovaPlugin {
     }
 
     private void getRutaActual(final CallbackContext callbackContext) {
-        int id = Helper.getRutaActual(mContext);
-        Ruta ruta = mDHelper.getRutaActual(id);
-        final PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, ruta.toJson());
+        Ruta ruta = null;
+        String msg = null;
+        try {
+            int id = Helper.getRutaActual(mContext);
+            ruta = mDHelper.getRutaActual(id);
+        } catch (Exception e) {
+            msg = "{'message':'Ruta no encontrada', 'code': 3}";
+        }
 
+
+        final Ruta finalRuta = ruta;
+        final String finalString = msg;
         this.cordova.getActivity().runOnUiThread(new Runnable() {
             public void run() {
+                PluginResult pluginResult = null;
+                if (finalRuta != null) {
+                    pluginResult = new PluginResult(PluginResult.Status.OK, finalRuta.toJson());
+                } else {
+                    pluginResult = new PluginResult(PluginResult.Status.ERROR, finalString);
+                }
                 callbackContext.sendPluginResult(pluginResult);
             }
         });
@@ -207,19 +239,55 @@ public class GPSTracking extends CordovaPlugin {
     }
 
     private void finalizarServicio(CallbackContext callbackContext) {
-        mContext.stopService(new Intent(mContext, CapturarRutaService.class));
-        mActivo = false;
-
-        JSONObject o = new JSONObject();
+        PluginResult pluginResult;
         try {
+            mContext.stopService(new Intent(mContext, CapturarRutaService.class));
+            mActivo = false;
+
+            JSONObject o = new JSONObject();
             o.put("msg", "Servicio finalizado");
-        } catch (JSONException e) {
+            pluginResult = new PluginResult(PluginResult.Status.OK, o);
+        } catch (Exception e) {
             e.printStackTrace();
+            pluginResult = new PluginResult(PluginResult.Status.ERROR, "{'message': 'Servicio finalizado incorrectamente', 'code': 4}");
         }
 
-        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, o);
-
+        //getDbFile();
         callbackContext.sendPluginResult(pluginResult);
     }
+
+    /*private void getDbFile() {
+        final File f = new File(cordova.getActivity().getFilesDir().getParent() + "/databases/" + DatabaseHelper.DATABASE_NAME);
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+
+        try {
+            fis = new FileInputStream(f);
+            fos = new FileOutputStream("/mnt/sdcard/db_dump.db");
+            while (true) {
+                int i = fis.read();
+                if (i != -1) {
+                    fos.write(i);
+                } else {
+                    break;
+                }
+            }
+            fos.flush();
+            Toast.makeText(cordova.getActivity(), "DB dump OK", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(cordova.getActivity(), "DB dump ERROR", Toast.LENGTH_LONG).show();
+        } finally {
+            try {
+                if (fos != null) {
+                    fos.close();
+                }
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException ioe) {
+            }
+        }
+    }*/
 
 }
