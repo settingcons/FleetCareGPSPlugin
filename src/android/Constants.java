@@ -15,5 +15,6 @@ public class Constants {
     public static final int NOTIFICATION_ID = 1337;
     public static final String RUNNING_SERVICE = "CAPTURA_RUTA_SERVICE";
     public static final String URL_RUTAS = "http://www.rest.anteveni.com/Rutas";
+	public static final String ACTIVITY_NAME = "ACTIVITY_NAME";
 
 }
