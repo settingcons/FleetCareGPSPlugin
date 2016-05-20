@@ -65,7 +65,7 @@ public class CapturarRutaService extends Service {
             String dateInString = new SimpleDateFormat(pattern).format(new Date(location.getTime()));
             String fechaCaptura = new SimpleDateFormat(pattern).format(new Date());
             float distance = Helper.calcularDistanciaEntreDosPuntos(location, mLastLocation);
-            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, mIdUsuario, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : "0") : "0"), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, Constants.INVTERRVAL_FETCH_LOCATION, distance);
+            RutaPunto rutaPunto = new RutaPunto(0, idRutaActual, mIdUsuario, location.getLatitude(), location.getLongitude(), dateInString, (location.hasBearing() ? (location.hasSpeed() ? Float.toString(location.getBearing()) : "0") : "0"), Float.toString(location.getSpeed()), Double.toString(location.getAltitude()), Float.toString(location.getAccuracy()), "0", fechaCaptura, 1, mIntervaloCaptura, distance);
             if (checkCeros(location, rutaPunto)) {
                 if (checkCoords(location, rutaPunto)) {
                     if (checkDiffIntervalo(location, rutaPunto)) {
@@ -144,7 +144,8 @@ public class CapturarRutaService extends Service {
 
         Intent i = new Intent();
         String mPackage = getApplicationContext().getPackageName();
-        String mClass = ".MainActivity";
+        String mClass = "." + Helper.getActivityName(getApplicationContext());
+        Log.e(TAG, "mClass -> " + mClass);
         i.setComponent(new ComponentName(mPackage, mPackage + mClass));
 
         PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, i, 0);

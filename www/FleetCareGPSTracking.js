@@ -65,7 +65,8 @@ var FleetCareGPSTracking = {
             successCallback(msg);
         };
         var fail = function (e) {
-            errorCallback(e);
+            var err = new GPSError(e.code, e.message);
+            errorCallback(err);
         };
         exec(win, fail, "FleetCareGPSTracking", "iniciarServicio", [{
             'IdUsuario': FleetCareGPSTracking.usuarioId,
@@ -84,7 +85,8 @@ var FleetCareGPSTracking = {
             successCallback(p);
         };
         var fail = function (e) {
-            errorCallback(e);
+            var err = new GPSError(e.code, e.message);
+            errorCallback(err);
         };
         exec(win, fail, "FleetCareGPSTracking", "getNuevosPuntos", []);
     },
@@ -105,7 +107,8 @@ var FleetCareGPSTracking = {
             successCallback(activo);
         };
         var fail = function (e) {
-            errorCallback(e);
+            var err = new GPSError(e.code, e.message);
+            errorCallback(err);
         };
         exec(win, fail, "FleetCareGPSTracking", "activo", []);
     },
@@ -128,7 +131,8 @@ var FleetCareGPSTracking = {
             successCallback(msg);
         };
         var fail = function (e) {
-            errorCallback(e);
+            var err = new GPSError(e.code, e.message);
+            errorCallback(err);
         };
         exec(win, fail, "FleetCareGPSTracking", "finalizarServicio", []);
     },

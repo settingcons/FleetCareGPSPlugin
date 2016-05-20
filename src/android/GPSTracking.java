@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -26,6 +27,7 @@ public class GPSTracking extends CordovaPlugin {
     private Context mContext;
     private DatabaseHelper mDHelper;
     private Boolean mActivo;
+    public static String mActivityName;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -33,6 +35,10 @@ public class GPSTracking extends CordovaPlugin {
         mDHelper = DatabaseHelper.getInstance(mContext);
         mContext.registerReceiver(broadcastReceiver, new IntentFilter(CapturarRutaService.BROADCAST_ACTION));
         mActivo = false;
+
+        mActivityName = cordova.getActivity().getClass().getSimpleName();
+        Helper.saveActivityName(mContext, mActivityName);
+        Log.e("GPS Tracking", "AN -> " + mActivityName);
 
         super.initialize(cordova, webView);
     }
@@ -182,18 +188,30 @@ public class GPSTracking extends CordovaPlugin {
     }
 
     private void getNuevosPuntos(CallbackContext callbackContext) {
-        int puntosEncontrados = Helper.getPuntosEncontrados(mContext);
+        PluginResult pluginResult;
+        try {
+            int puntosEncontrados = Helper.getPuntosEncontrados(mContext);
 
-        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, puntosEncontrados);
+            pluginResult = new PluginResult(PluginResult.Status.OK, puntosEncontrados);
+        } catch (Exception e) {
+            e.printStackTrace();
+            pluginResult = new PluginResult(PluginResult.Status.ERROR, "{'message': 'No se han podido encontrar los puntos encontrados con anterioridad', 'code': 6}");
+        }
 
         callbackContext.sendPluginResult(pluginResult);
     }
 
     private void activo(CallbackContext callbackContext) {
-        Boolean activo = isMyServiceRunning(CapturarRutaService.class);
-        PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, activo);
+        PluginResult pluginResult;
+        try {
+            Boolean activo = isMyServiceRunning(CapturarRutaService.class);
+            pluginResult = new PluginResult(PluginResult.Status.OK, activo);
 
-        if (activo) mActivo = true;
+            if (activo) mActivo = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            pluginResult = new PluginResult(PluginResult.Status.ERROR, "{'message': 'Estado del servicio no se ha podido determinar', 'code': 5}");
+        }
 
         callbackContext.sendPluginResult(pluginResult);
     }
