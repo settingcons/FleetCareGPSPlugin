@@ -84,11 +84,23 @@ public class Helper {
     public static JSONArray getRutaPuntoArrayJson(List<RutaPunto> rutaPuntoList) {
         JSONArray jsonArray = new JSONArray();
 
-        for(RutaPunto rp: rutaPuntoList) {
+        for (RutaPunto rp : rutaPuntoList) {
             JSONObject rpJson = rp.toJson();
             jsonArray.put(rpJson);
         }
 
         return jsonArray;
+    }
+
+    public static void saveActivityName(Context context, String name) {
+        SharedPreferences settings = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString(Constants.ACTIVITY_NAME, name);
+        editor.apply();
+    }
+
+    public static String getActivityName(Context context) {
+        SharedPreferences settings = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        return settings.getString(Constants.ACTIVITY_NAME, "");
     }
 }
