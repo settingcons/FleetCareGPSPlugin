@@ -138,6 +138,7 @@ var FleetCareGPSTracking = {
         var fail = function (e) {
             var err = new GPSError(e.code, e.message);
             errorCallback(err);
+            FleetCareGPSTracking.callbackRutaFinalizada(FleetCareGPSTracking.rutaActual);
         };
         exec(win, fail, "FleetCareGPSTracking", "finalizarServicio", []);
     },

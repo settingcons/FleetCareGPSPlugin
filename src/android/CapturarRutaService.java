@@ -242,14 +242,14 @@ public class CapturarRutaService extends Service {
                 List<Address> addressesDirecInicio = geocoder.getFromLocation(loc1.getLatitude(), loc1.getLongitude(), 1);
                 if (addressesDirecInicio.size() > 0) {
                     Address addressDirecInicio = addressesDirecInicio.get(0);
-                    direcInicio = addressDirecInicio.getAddressLine(1) + "\n" + addressDirecInicio.getAddressLine(0) + "\n" + addressDirecInicio.getAddressLine(2);
+                    direcInicio = addressDirecInicio.getAddressLine(0) + ", " + addressDirecInicio.getAddressLine(1) /*+ " " + addressDirecInicio.getAddressLine(2)*/;
                 }
                 rutaActual.setDirecInicio(direcInicio);
 
                 List<Address> addressesDirecFin = geocoder.getFromLocation(loc2.getLatitude(), loc2.getLongitude(), 1);
                 if (addressesDirecFin.size() > 0) {
                     Address addressDirecFin = addressesDirecFin.get(0);
-                    direcFin = addressDirecFin.getAddressLine(1) + "\n" + addressDirecFin.getAddressLine(0) + "\n" + addressDirecFin.getAddressLine(2);
+                    direcFin = addressDirecFin.getAddressLine(0) + ", " + addressDirecFin.getAddressLine(1) /*+ " " + addressDirecFin.getAddressLine(2)*/;
                 }
                 rutaActual.setDirecFin(direcFin);
             } catch (IOException e) {
@@ -269,7 +269,7 @@ public class CapturarRutaService extends Service {
             rutaActual.setFechaHoraFin(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
         }
 
-        rutaActual.setDistancia(distancia);
+        rutaActual.setDistancia(distancia.replace(",", "."));
         rutaActual.setDuracion(duracion);
         /*String deviceAndAndroidVersion = DeviceName.getDeviceName();*/
         /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
