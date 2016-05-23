@@ -171,6 +171,7 @@ public class GPSTracking extends CordovaPlugin {
             serviceIntent.putExtra("IdUsuario", opts.getString("IdUsuario"));
             serviceIntent.putExtra("IntervaloCaptura", opts.getString("IntervaloCaptura"));
             serviceIntent.putExtra("MensajeDireccionNoEncontrada", opts.getString("MensajeDireccionNoEncontrada"));
+            serviceIntent.putExtra("PuntosValidos", opts.getString("PuntosValidos"));
 
             mActivo = true;
             mContext.startService(serviceIntent);

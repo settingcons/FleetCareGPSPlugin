@@ -22,6 +22,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -43,6 +44,7 @@ public class CapturarRutaService extends Service {
     private int mIdUsuario = 0;
     private int mIntervaloCaptura = Constants.INVTERRVAL_FETCH_LOCATION;
     private String mDireccionNoEncontrada = "Dirección no encontrada";
+    private Boolean mPuntosValidos = true; //si verdadero, solo guardar puntos válidos
 
     public static final String BROADCAST_ACTION = "settingconsultoria.com.fleetcarenativo.enviarpuntosencontrados";
     Intent intent;
@@ -76,16 +78,31 @@ public class CapturarRutaService extends Service {
                 }
             }
 
-            puntosEncontrados++;
-            intent = new Intent(BROADCAST_ACTION);
-            intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
-            sendBroadcast(intent);
-            Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
-            if (puntosEncontrados > 1) {
-                mDistancia += location.distanceTo(mLastLocation);
+            if (mPuntosValidos) {
+                if (rutaPunto.getValido() == 1) {
+                    puntosEncontrados++;
+                    intent = new Intent(BROADCAST_ACTION);
+                    intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
+                    sendBroadcast(intent);
+                    Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
+                    if (puntosEncontrados > 1) {
+                        mDistancia += location.distanceTo(mLastLocation);
+                    }
+                    mLastLocation.set(location);
+                    long id = databaseHelper.insertRutaPunto(rutaPunto);
+                }
+            } else {
+                puntosEncontrados++;
+                intent = new Intent(BROADCAST_ACTION);
+                intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
+                sendBroadcast(intent);
+                Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
+                if (puntosEncontrados > 1) {
+                    mDistancia += location.distanceTo(mLastLocation);
+                }
+                mLastLocation.set(location);
+                long id = databaseHelper.insertRutaPunto(rutaPunto);
             }
-            mLastLocation.set(location);
-            long id = databaseHelper.insertRutaPunto(rutaPunto);
         }
 
         @Override
@@ -115,6 +132,7 @@ public class CapturarRutaService extends Service {
         mIdUsuario = Integer.valueOf((String) intent.getExtras().get("IdUsuario"));
         mIntervaloCaptura = Integer.valueOf((String) intent.getExtras().get("IntervaloCaptura"));
         mDireccionNoEncontrada = (String) intent.getExtras().get("MensajeDireccionNoEncontrada");
+        mPuntosValidos = Boolean.valueOf((String) intent.getExtras().get("PuntosValidos"));
 
         Helper.setRunningService(getApplicationContext(), true);
 
@@ -145,7 +163,6 @@ public class CapturarRutaService extends Service {
         Intent i = new Intent();
         String mPackage = getApplicationContext().getPackageName();
         String mClass = "." + Helper.getActivityName(getApplicationContext());
-        Log.e(TAG, "mClass -> " + mClass);
         i.setComponent(new ComponentName(mPackage, mPackage + mClass));
 
         PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, i, 0);
@@ -202,7 +219,7 @@ public class CapturarRutaService extends Service {
         */
         Ruta rutaActual = databaseHelper.getRutaActual(idRutaActual);
         List<RutaPunto> rutaPuntoList = databaseHelper.getRutaPuntos(idRutaActual);
-        float distancia = 0f;
+        String distancia = "";
         String duracion = "0";
         if (rutaPuntoList.size() > 0) {
             Location loc1 = new Location("");
@@ -212,7 +229,8 @@ public class CapturarRutaService extends Service {
             loc2.setLatitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_x());
             loc2.setLongitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_y());
             /*distancia = Helper.calcularDistanciaEntreDosPuntos(loc1, loc2);*/
-            distancia = mDistancia;
+            DecimalFormat df = new DecimalFormat("0.00");
+            distancia = df.format((mDistancia / 1000));
 
             /**
              * Coger los nombres de las calles de inicio y fin
@@ -251,7 +269,7 @@ public class CapturarRutaService extends Service {
             rutaActual.setFechaHoraFin(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
         }
 
-        rutaActual.setDistancia(String.valueOf(distancia / 1000));
+        rutaActual.setDistancia(distancia);
         rutaActual.setDuracion(duracion);
         /*String deviceAndAndroidVersion = DeviceName.getDeviceName();*/
         /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;

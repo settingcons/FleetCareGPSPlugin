@@ -15,6 +15,7 @@ var FleetCareGPSTracking = {
     usuarioId: 0,
     intervaloCaptura: 5000,
     mensajeDireccion: '',
+    puntosValidos: true,
     callbackPuntos: null,
     callbackRutaGuardada: null,
     callbackRutaFinalizada: null,
@@ -24,19 +25,22 @@ var FleetCareGPSTracking = {
      * @param  {int} usuario_id             [description]
      * @param  {int} intervalo              [description]
      * @param  {String} mensaje_direccion   [description]
+     * @param  {String} puntos_validos   [description]
      * @param  {Function} callbackRutaGuardada   [description]
      * @param  {Function} callbackPuntos         [description]
      * @param  {Function} callbackRutaFinalizada [description]
      * @param  {Function} callbackNoCoordenadas  [description]
      * @return {void}
      */
-    init: function (usuario_id, intervalo, mensaje_direccion, callbackRutaGuardada, callbackPuntos, callbackRutaFinalizada, callbackNoCoordenadas) {
+    init: function (usuario_id, intervalo, mensaje_direccion, puntos_validos, callbackRutaGuardada, callbackPuntos, callbackRutaFinalizada, callbackNoCoordenadas) {
         /**
          * Seteamos variables necesarias para el plugin
          */
         FleetCareGPSTracking.usuarioId = usuario_id || FleetCareGPSTracking.usuarioId;
         FleetCareGPSTracking.intervaloCaptura = intervalo || FleetCareGPSTracking.intervaloCaptura;
         FleetCareGPSTracking.mensajeDireccion = mensaje_direccion || FleetCareGPSTracking.mensajeDireccion;
+        FleetCareGPSTracking.puntosValidos = puntos_validos;
+
         /**
          * Seteamos las funciones/callbacks que usará el plugin según las diferentes acciones
          */
@@ -71,7 +75,8 @@ var FleetCareGPSTracking = {
         exec(win, fail, "FleetCareGPSTracking", "iniciarServicio", [{
             'IdUsuario': FleetCareGPSTracking.usuarioId,
             'IntervaloCaptura': FleetCareGPSTracking.intervaloCaptura * 1000,
-            'MensajeDireccionNoEncontrada': FleetCareGPSTracking.mensajeDireccion
+            'MensajeDireccionNoEncontrada': FleetCareGPSTracking.mensajeDireccion,
+            'PuntosValidos': FleetCareGPSTracking.puntosValidos
         }]);
     },
     guardarNuevosPuntos: function (puntos) {
