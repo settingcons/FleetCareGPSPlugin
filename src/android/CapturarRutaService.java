@@ -47,7 +47,7 @@ public class CapturarRutaService extends Service {
     private Boolean mPuntosValidos = true; //si verdadero, solo guardar puntos válidos
 
     public static final String BROADCAST_ACTION = "settingconsultoria.com.fleetcarenativo.enviarpuntosencontrados";
-    Intent intent;
+    public Intent mIntent;
     private Timer mTimer;
     private Location mLastLocation;
     private float mDistancia = 0f;
@@ -81,9 +81,9 @@ public class CapturarRutaService extends Service {
             if (mPuntosValidos) {
                 if (rutaPunto.getValido() == 1) {
                     puntosEncontrados++;
-                    intent = new Intent(BROADCAST_ACTION);
-                    intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
-                    sendBroadcast(intent);
+                    mIntent = new Intent(BROADCAST_ACTION);
+                    mIntent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
+                    sendBroadcast(mIntent);
                     Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
                     if (puntosEncontrados > 1) {
                         mDistancia += location.distanceTo(mLastLocation);
@@ -93,9 +93,9 @@ public class CapturarRutaService extends Service {
                 }
             } else {
                 puntosEncontrados++;
-                intent = new Intent(BROADCAST_ACTION);
-                intent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
-                sendBroadcast(intent);
+                mIntent = new Intent(BROADCAST_ACTION);
+                mIntent.putExtra("puntosEncontrados", Integer.toString(puntosEncontrados));
+                sendBroadcast(mIntent);
                 Helper.setPuntosEncontrados(getApplicationContext(), puntosEncontrados);
                 if (puntosEncontrados > 1) {
                     mDistancia += location.distanceTo(mLastLocation);
@@ -145,10 +145,12 @@ public class CapturarRutaService extends Service {
         Ruta ruta = new Ruta(0, this.mIdUsuario, dateInString, "", "00:00:00", "", "", mDireccionNoEncontrada, mDireccionNoEncontrada);
         long idNewRuta = databaseHelper.insertRuta(ruta);
         idRutaActual = (int) idNewRuta;
+        Log.d(TAG, "idRutaActual: " + idRutaActual);
         Helper.setRutaActual(getApplicationContext(), idRutaActual);
         /*}*/
-        intent.putExtra("idRutaActual", Integer.toString(idRutaActual));
-        sendBroadcast(intent);
+        mIntent = new Intent(BROADCAST_ACTION);
+        mIntent.putExtra("idRutaActualInicio", Integer.toString(idRutaActual));
+        sendBroadcast(mIntent);
 
         return START_STICKY;
     }
@@ -175,7 +177,6 @@ public class CapturarRutaService extends Service {
                 .build();
         startForeground(Constants.NOTIFICATION_ID, note);
         initializeLocationManager();
-        intent = new Intent(BROADCAST_ACTION);
         databaseHelper = DatabaseHelper.getInstance(getApplicationContext());
         /*puntosEncontrados = Helper.getPuntosEncontrados(getApplicationContext());*/
         puntosEncontrados = 0;
@@ -210,6 +211,7 @@ public class CapturarRutaService extends Service {
     @Override
     public void onDestroy() {
         Log.e(TAG, "onDestroy");
+        super.onDestroy();
         Helper.setRunningService(getApplicationContext(), false);
         Helper.setRutaActual(getApplicationContext(), 0);
         Helper.setPuntosEncontrados(getApplicationContext(), 0);
@@ -218,6 +220,7 @@ public class CapturarRutaService extends Service {
             Procesar la ruta finalizada
         */
         Ruta rutaActual = databaseHelper.getRutaActual(idRutaActual);
+        Log.d(TAG, "el id actual es; " + idRutaActual);
         List<RutaPunto> rutaPuntoList = databaseHelper.getRutaPuntos(idRutaActual);
         String distancia = "";
         String duracion = "0";
@@ -270,6 +273,7 @@ public class CapturarRutaService extends Service {
         }
 
         rutaActual.setDistancia(distancia.replace(",", "."));
+        Log.e(TAG, rutaActual.getDistancia());
         rutaActual.setDuracion(duracion);
         /*String deviceAndAndroidVersion = DeviceName.getDeviceName();*/
         /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
@@ -280,11 +284,10 @@ public class CapturarRutaService extends Service {
             Updatear Ruta
          */
         databaseHelper.updateRuta(rutaActual);
-        intent = new Intent(BROADCAST_ACTION);
-        intent.putExtra("idRutaActual", Integer.toString(idRutaActual));
-        sendBroadcast(intent);
+        mIntent = new Intent(BROADCAST_ACTION);
+        mIntent.putExtra("idRutaActualFinal", Integer.toString(idRutaActual));
+        sendBroadcast(mIntent);
         mTimer.cancel();
-        super.onDestroy();
         if (mLocationManager != null) {
             for (int i = 0; i < mLocationListeners.length; i++) {
                 try {
@@ -346,9 +349,9 @@ public class CapturarRutaService extends Service {
             note.flags = Notification.DEFAULT_LIGHTS | Notification.FLAG_AUTO_CANCEL;
             NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             notificationManager.notify(0, note);
-            intent = new Intent(BROADCAST_ACTION);
-            intent.putExtra("tiempoSinCoordenadasNuevas", "true");
-            sendBroadcast(intent);
+            mIntent = new Intent(BROADCAST_ACTION);
+            mIntent.putExtra("tiempoSinCoordenadasNuevas", "true");
+            sendBroadcast(mIntent);
         }
 
         mTimer.schedule(new TimerTask() {
