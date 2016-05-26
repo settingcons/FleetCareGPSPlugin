@@ -314,4 +314,9 @@ public class GPSTracking extends CordovaPlugin {
         }
     }*/
 
+    @Override
+    public void onDestroy() {
+        mContext.unregisterReceiver(broadcastReceiver);
+        super.onDestroy();
+    }
 }
