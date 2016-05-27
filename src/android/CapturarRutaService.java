@@ -211,83 +211,95 @@ public class CapturarRutaService extends Service {
     @Override
     public void onDestroy() {
         Log.e(TAG, "onDestroy");
-        super.onDestroy();
-        Helper.setRunningService(getApplicationContext(), false);
-        Helper.setRutaActual(getApplicationContext(), 0);
-        Helper.setPuntosEncontrados(getApplicationContext(), 0);
+        int numError = -1;
+        try {
+            Helper.setRunningService(getApplicationContext(), false);
+            Helper.setRutaActual(getApplicationContext(), 0);
+            Helper.setPuntosEncontrados(getApplicationContext(), 0);
 
-        /*
-            Procesar la ruta finalizada
-        */
-        Ruta rutaActual = databaseHelper.getRutaActual(idRutaActual);
-        Log.d(TAG, "el id actual es; " + idRutaActual);
-        List<RutaPunto> rutaPuntoList = databaseHelper.getRutaPuntos(idRutaActual);
-        String distancia = "";
-        String duracion = "0";
-        if (rutaPuntoList.size() > 0) {
-            Location loc1 = new Location("");
-            loc1.setLatitude(rutaPuntoList.get(0).getCoord_x());
-            loc1.setLongitude(rutaPuntoList.get(0).getCoord_y());
-            Location loc2 = new Location("");
-            loc2.setLatitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_x());
-            loc2.setLongitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_y());
+            /*
+                Procesar la ruta finalizada
+            */
+            Ruta rutaActual = databaseHelper.getRutaActual(idRutaActual);
+            Log.d(TAG, "el id actual es; " + idRutaActual);
+            List<RutaPunto> rutaPuntoList = databaseHelper.getRutaPuntos(idRutaActual);
+            String distancia = "";
+            String duracion = "00:00:00";
+            if (rutaPuntoList.size() > 0) {
+                Location loc1 = new Location("");
+                loc1.setLatitude(rutaPuntoList.get(0).getCoord_x());
+                loc1.setLongitude(rutaPuntoList.get(0).getCoord_y());
+                Location loc2 = new Location("");
+                loc2.setLatitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_x());
+                loc2.setLongitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_y());
             /*distancia = Helper.calcularDistanciaEntreDosPuntos(loc1, loc2);*/
-            DecimalFormat df = new DecimalFormat("0.00");
-            distancia = df.format((mDistancia / 1000));
+                DecimalFormat df = new DecimalFormat("0.00");
+                distancia = df.format((mDistancia / 1000));
 
-            /**
-             * Coger los nombres de las calles de inicio y fin
-             **/
-            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-            String direcInicio = mDireccionNoEncontrada;
-            String direcFin = mDireccionNoEncontrada;
-            try {
-                List<Address> addressesDirecInicio = geocoder.getFromLocation(loc1.getLatitude(), loc1.getLongitude(), 1);
-                if (addressesDirecInicio.size() > 0) {
-                    Address addressDirecInicio = addressesDirecInicio.get(0);
-                    direcInicio = addressDirecInicio.getAddressLine(0) + ", " + addressDirecInicio.getAddressLine(1) /*+ " " + addressDirecInicio.getAddressLine(2)*/;
-                }
-                rutaActual.setDirecInicio(direcInicio);
+                /**
+                 * Coger los nombres de las calles de inicio y fin
+                 **/
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                String direcInicio = mDireccionNoEncontrada;
+                String direcFin = mDireccionNoEncontrada;
+                try {
+                    List<Address> addressesDirecInicio = geocoder.getFromLocation(loc1.getLatitude(), loc1.getLongitude(), 1);
+                    if (addressesDirecInicio.size() > 0) {
+                        Address addressDirecInicio = addressesDirecInicio.get(0);
+                        direcInicio = addressDirecInicio.getAddressLine(0) + ", " + addressDirecInicio.getAddressLine(1) /*+ " " + addressDirecInicio.getAddressLine(2)*/;
+                    }
+                    rutaActual.setDirecInicio(direcInicio);
 
-                List<Address> addressesDirecFin = geocoder.getFromLocation(loc2.getLatitude(), loc2.getLongitude(), 1);
-                if (addressesDirecFin.size() > 0) {
-                    Address addressDirecFin = addressesDirecFin.get(0);
-                    direcFin = addressDirecFin.getAddressLine(0) + ", " + addressDirecFin.getAddressLine(1) /*+ " " + addressDirecFin.getAddressLine(2)*/;
+                    List<Address> addressesDirecFin = geocoder.getFromLocation(loc2.getLatitude(), loc2.getLongitude(), 1);
+                    if (addressesDirecFin.size() > 0) {
+                        Address addressDirecFin = addressesDirecFin.get(0);
+                        direcFin = addressDirecFin.getAddressLine(0) + ", " + addressDirecFin.getAddressLine(1) /*+ " " + addressDirecFin.getAddressLine(2)*/;
+                    }
+                    rutaActual.setDirecFin(direcFin);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    numError = 0;
                 }
-                rutaActual.setDirecFin(direcFin);
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                try {
+                    Date start = sdf.parse(rutaActual.getFechaHoraInicio());
+                    Date end = sdf.parse(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
+                    long duration = end.getTime() - start.getTime();
+                    duracion = formatDuration(duration);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    numError = 1;
+                }
+
+                rutaActual.setFechaHoraFin(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
+            } else {
+                numError = 2;
             }
 
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            try {
-                Date start = sdf.parse(rutaActual.getFechaHoraInicio());
-                Date end = sdf.parse(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
-                long duration = end.getTime() - start.getTime();
-                duracion = formatDuration(duration);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-            rutaActual.setFechaHoraFin(rutaPuntoList.get(rutaPuntoList.size() - 1).getFechaHoraCaptura());
-        }
-
-        rutaActual.setDistancia(distancia.replace(",", "."));
-        Log.e(TAG, rutaActual.getDistancia());
-        rutaActual.setDuracion(duracion);
+            rutaActual.setDistancia(distancia.replace(",", "."));
+            Log.e(TAG, rutaActual.getDistancia());
+            rutaActual.setDuracion(duracion);
         /*String deviceAndAndroidVersion = DeviceName.getDeviceName();*/
         /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
         rutaActual.setObservaciones(deviceAndAndroidVersion);*/
-        rutaActual.setObservaciones("");
+            rutaActual.setObservaciones("");
 
         /*
             Updatear Ruta
          */
-        databaseHelper.updateRuta(rutaActual);
-        mIntent = new Intent(BROADCAST_ACTION);
-        mIntent.putExtra("idRutaActualFinal", Integer.toString(idRutaActual));
-        sendBroadcast(mIntent);
-        mTimer.cancel();
+            databaseHelper.updateRuta(rutaActual);
+            mTimer.cancel();
+            mIntent = new Intent(BROADCAST_ACTION);
+            mIntent.putExtra("idRutaActualFinal", Integer.toString(idRutaActual));
+            sendBroadcast(mIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            mIntent = new Intent(BROADCAST_ACTION);
+            mIntent.putExtra("idRutaActualFinal", Integer.toString(idRutaActual));
+            sendBroadcast(mIntent);
+        }
+        super.onDestroy();
         if (mLocationManager != null) {
             for (int i = 0; i < mLocationListeners.length; i++) {
                 try {
