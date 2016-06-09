@@ -17,6 +17,7 @@ var RutaPunto = require('./RutaPunto');
 
 var Ruta = function(id, id_usuario, fecha_hora_inicio, fecha_hora_fin, duracion, distancia, observaciones, direccion_inicio, direccion_fin, lista_puntos) {
     this.IdRuta = id;
+    this.Id = id;
     this.IdUsuario = id_usuario;
     this.FechaHoraInicio = fecha_hora_inicio;
     this.FechaHoraFin = fecha_hora_fin;
