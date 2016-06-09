@@ -28,6 +28,7 @@ public class GPSTracking extends CordovaPlugin {
     private DatabaseHelper mDHelper;
     private Boolean mActivo;
     public static String mActivityName;
+    public Intent mIntent;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -139,10 +140,10 @@ public class GPSTracking extends CordovaPlugin {
                 rutaS = ruta.toJson().toString();
             } catch (Exception e) {
                 msg = "{'message':'Ruta no encontrada', 'code': 3}";
-                webView.loadUrl("javascript:FleetCareGPSTracking.rutaNoEncontrada(" + msg + ")");
+                webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual({})");
             }
 
-            webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual('" + rutaS + "', " + ((mActivo) ? "false" : "true") + ");");
+            webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual('" + rutaS + "', false);");
         }
 
         if (intent.getStringExtra("idRutaActualFinal") != null) {
@@ -160,10 +161,10 @@ public class GPSTracking extends CordovaPlugin {
                 }
             } catch (Exception e) {
                 msg = "{'message':'Ruta no encontrada', 'code': 3}";
-                webView.loadUrl("javascript:FleetCareGPSTracking.rutaNoEncontrada(" + msg + ")");
+                webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual({})");
             }
 
-            webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual('" + rutaS + "', " + ((mActivo) ? "false" : "true") + ");");
+            webView.loadUrl("javascript:FleetCareGPSTracking.guardarRutaActual('" + rutaS + "', true);");
         }
     }
 
@@ -270,6 +271,7 @@ public class GPSTracking extends CordovaPlugin {
 
             JSONObject o = new JSONObject();
             o.put("msg", "Servicio finalizado");
+
             pluginResult = new PluginResult(PluginResult.Status.OK, o);
         } catch (Exception e) {
             e.printStackTrace();

@@ -9,8 +9,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.AudioManager;
@@ -21,13 +19,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -211,15 +204,15 @@ public class CapturarRutaService extends Service {
     @Override
     public void onDestroy() {
         Log.e(TAG, "onDestroy");
-        int numError = -1;
+        /*int numError = -1;
         try {
             Helper.setRunningService(getApplicationContext(), false);
             Helper.setRutaActual(getApplicationContext(), 0);
             Helper.setPuntosEncontrados(getApplicationContext(), 0);
 
-            /*
+            *//*
                 Procesar la ruta finalizada
-            */
+            *//*
             Ruta rutaActual = databaseHelper.getRutaActual(idRutaActual);
             Log.d(TAG, "el id actual es; " + idRutaActual);
             List<RutaPunto> rutaPuntoList = databaseHelper.getRutaPuntos(idRutaActual);
@@ -232,13 +225,13 @@ public class CapturarRutaService extends Service {
                 Location loc2 = new Location("");
                 loc2.setLatitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_x());
                 loc2.setLongitude(rutaPuntoList.get(rutaPuntoList.size() - 1).getCoord_y());
-            /*distancia = Helper.calcularDistanciaEntreDosPuntos(loc1, loc2);*/
+            *//*distancia = Helper.calcularDistanciaEntreDosPuntos(loc1, loc2);*//*
                 DecimalFormat df = new DecimalFormat("0.00");
                 distancia = df.format((mDistancia / 1000));
 
-                /**
+                *//**
                  * Coger los nombres de las calles de inicio y fin
-                 **/
+                 **//*
                 Geocoder geocoder = new Geocoder(this, Locale.getDefault());
                 String direcInicio = mDireccionNoEncontrada;
                 String direcFin = mDireccionNoEncontrada;
@@ -246,14 +239,14 @@ public class CapturarRutaService extends Service {
                     List<Address> addressesDirecInicio = geocoder.getFromLocation(loc1.getLatitude(), loc1.getLongitude(), 1);
                     if (addressesDirecInicio.size() > 0) {
                         Address addressDirecInicio = addressesDirecInicio.get(0);
-                        direcInicio = addressDirecInicio.getAddressLine(0) + ", " + addressDirecInicio.getAddressLine(1) /*+ " " + addressDirecInicio.getAddressLine(2)*/;
+                        direcInicio = addressDirecInicio.getAddressLine(0) + ", " + addressDirecInicio.getAddressLine(1) *//*+ " " + addressDirecInicio.getAddressLine(2)*//*;
                     }
                     rutaActual.setDirecInicio(direcInicio);
 
                     List<Address> addressesDirecFin = geocoder.getFromLocation(loc2.getLatitude(), loc2.getLongitude(), 1);
                     if (addressesDirecFin.size() > 0) {
                         Address addressDirecFin = addressesDirecFin.get(0);
-                        direcFin = addressDirecFin.getAddressLine(0) + ", " + addressDirecFin.getAddressLine(1) /*+ " " + addressDirecFin.getAddressLine(2)*/;
+                        direcFin = addressDirecFin.getAddressLine(0) + ", " + addressDirecFin.getAddressLine(1) *//*+ " " + addressDirecFin.getAddressLine(2)*//*;
                     }
                     rutaActual.setDirecFin(direcFin);
                 } catch (IOException e) {
@@ -280,14 +273,14 @@ public class CapturarRutaService extends Service {
             rutaActual.setDistancia(distancia.replace(",", "."));
             Log.e(TAG, rutaActual.getDistancia());
             rutaActual.setDuracion(duracion);
-        /*String deviceAndAndroidVersion = DeviceName.getDeviceName();*/
-        /*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
-        rutaActual.setObservaciones(deviceAndAndroidVersion);*/
+        *//*String deviceAndAndroidVersion = DeviceName.getDeviceName();*//*
+        *//*deviceAndAndroidVersion += "\nAndroid: " + android.os.Build.VERSION.RELEASE;
+        rutaActual.setObservaciones(deviceAndAndroidVersion);*//*
             rutaActual.setObservaciones("");
 
-        /*
+        *//*
             Updatear Ruta
-         */
+         *//*
             databaseHelper.updateRuta(rutaActual);
             mTimer.cancel();
             mIntent = new Intent(BROADCAST_ACTION);
@@ -298,7 +291,7 @@ public class CapturarRutaService extends Service {
             mIntent = new Intent(BROADCAST_ACTION);
             mIntent.putExtra("idRutaActualFinal", Integer.toString(idRutaActual));
             sendBroadcast(mIntent);
-        }
+        }*/
         super.onDestroy();
         if (mLocationManager != null) {
             for (int i = 0; i < mLocationListeners.length; i++) {
