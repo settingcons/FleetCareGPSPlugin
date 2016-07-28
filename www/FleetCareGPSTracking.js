@@ -142,6 +142,15 @@ var FleetCareGPSTracking = {
         };
         exec(win, fail, "FleetCareGPSTracking", "finalizarServicio", []);
     },
+	numeroProcesadores: function(successCallback, errorCallback) {
+        var win = function (msg) {
+            successCallback(msg);
+        };
+        var fail = function (e) {
+            errorCallback(e);
+        };
+        exec(win, fail, "FleetCareGPSTracking", "getNumeroDeProcesadores", []);
+    },
     rutaNoEncontrada: function(msg) {
         console.info(msg.message);
     }

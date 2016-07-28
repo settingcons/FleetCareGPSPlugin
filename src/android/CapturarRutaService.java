@@ -204,6 +204,7 @@ public class CapturarRutaService extends Service {
     @Override
     public void onDestroy() {
         Log.e(TAG, "onDestroy");
+        mTimer.cancel();
         /*int numError = -1;
         try {
             Helper.setRunningService(getApplicationContext(), false);

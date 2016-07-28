@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.util.Log;
 
 import org.apache.cordova.CallbackContext;
@@ -17,6 +18,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.io.FileFilter;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by usu_adm on 02/05/2016.
@@ -56,7 +60,7 @@ public class GPSTracking extends CordovaPlugin {
     public boolean execute(final String action, final JSONArray args,
                            final CallbackContext callbackContext) {
 
-        if (action == null || !action.matches("iniciarServicio|finalizarServicio|activo|getNuevosPuntos|getRutaActual")) {
+        if (action == null || !action.matches("iniciarServicio|finalizarServicio|activo|getNuevosPuntos|getRutaActual|getNumeroDeProcesadores")) {
             return false;
         }
 
@@ -90,6 +94,11 @@ public class GPSTracking extends CordovaPlugin {
 
         if (action.equals("getRutaActual")) {
             getRutaActual(callbackContext);
+            return true;
+        }
+		
+		if (action.equals("getNumeroDeProcesadores")) {
+            getNumeroProcesadores(callbackContext);
             return true;
         }
 
@@ -316,7 +325,58 @@ public class GPSTracking extends CordovaPlugin {
         }
     }*/
 
-    @Override
+	private void getNumeroProcesadores(CallbackContext callbackContext) {
+        PluginResult pluginResult;
+        try {
+            int nCores = getNumberOfCores();
+            pluginResult = new PluginResult(PluginResult.Status.OK, nCores);
+        } catch (Exception e) {
+            e.printStackTrace();
+            pluginResult = new PluginResult(PluginResult.Status.ERROR, "{'message': 'Estado del servicio no se ha podido determinar', 'code': 5}");
+        }
+
+        callbackContext.sendPluginResult(pluginResult);
+    }
+
+    private int getNumberOfCores() {
+        if (Build.VERSION.SDK_INT >= 17) {
+            return Runtime.getRuntime().availableProcessors();
+        } else {
+            // Use saurabh64's answer
+            return getNumCoresOldPhones();
+        }
+    }
+
+    /**
+     * Gets the number of cores available in this device, across all processors.
+     * Requires: Ability to peruse the filesystem at "/sys/devices/system/cpu"
+     *
+     * @return The number of cores, or 1 if failed to get result
+     */
+    private int getNumCoresOldPhones() {
+        //Private Class to display only CPU devices in the directory listing
+        class CpuFilter implements FileFilter {
+            @Override
+            public boolean accept(File pathname) {
+                //Check if filename is "cpu", followed by a single digit number
+                return Pattern.matches("cpu[0-9]+", pathname.getName());
+            }
+        }
+
+        try {
+            //Get directory containing CPU info
+            File dir = new File("/sys/devices/system/cpu/");
+            //Filter to only list the devices we care about
+            File[] files = dir.listFiles(new CpuFilter());
+            //Return the number of cores (virtual CPU devices)
+            return files.length;
+        } catch (Exception e) {
+            //Default to return 1 core
+            return 1;
+        }
+    }
+    
+	@Override
     public void onDestroy() {
         mContext.unregisterReceiver(broadcastReceiver);
         super.onDestroy();
